@@ -13,18 +13,19 @@ use Prophecy\Argument;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authentication\Token\PreAuthenticatedToken;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 
 class RefreshTokenSpec extends ObjectBehavior
 {
-    public function let(RefreshTokenAuthenticator $authenticator, RefreshTokenProvider $provider, AuthenticationSuccessHandler $successHandler, AuthenticationFailureHandler $failureHandler, RefreshTokenManagerInterface $refreshTokenManager, TokenInterface $token, UserProviderInterface $userProvider, $ttl, $providerKey, $ttlUpdate, EventDispatcherInterface $eventDispatcher)
+    public function let(RefreshTokenAuthenticator $authenticator, RefreshTokenProvider $provider, TokenStorageInterface $tokenStorage, AuthenticationSuccessHandler $successHandler, AuthenticationFailureHandler $failureHandler, RefreshTokenManagerInterface $refreshTokenManager, TokenInterface $token, UserProviderInterface $userProvider, $ttl, $providerKey, $ttlUpdate, EventDispatcherInterface $eventDispatcher)
     {
         $ttl = 2592000;
         $ttlUpdate = false;
         $providerKey = 'testkey';
 
-        $this->beConstructedWith($authenticator, $provider, $successHandler, $failureHandler, $refreshTokenManager, $ttl, $providerKey, $ttlUpdate, $eventDispatcher);
+        $this->beConstructedWith($authenticator, $provider, $tokenStorage, $successHandler, $failureHandler, $refreshTokenManager, $ttl, $providerKey, $ttlUpdate, $eventDispatcher);
     }
 
     public function it_is_initializable()
@@ -43,9 +44,9 @@ class RefreshTokenSpec extends ObjectBehavior
         $this->refresh($request);
     }
 
-    public function it_refresh_token_with_ttl_update(RefreshTokenProvider $provider, AuthenticationSuccessHandler $successHandler, AuthenticationFailureHandler $failureHandler, Request $request, $refreshTokenManager, $authenticator, $token, PreAuthenticatedToken $preAuthenticatedToken, RefreshTokenInterface $refreshToken, EventDispatcherInterface $eventDispatcher)
+    public function it_refresh_token_with_ttl_update(RefreshTokenProvider $provider, TokenStorageInterface $tokenStorage, AuthenticationSuccessHandler $successHandler, AuthenticationFailureHandler $failureHandler, Request $request, $refreshTokenManager, $authenticator, $token, PreAuthenticatedToken $preAuthenticatedToken, RefreshTokenInterface $refreshToken, EventDispatcherInterface $eventDispatcher)
     {
-        $this->beConstructedWith($authenticator, $provider, $successHandler, $failureHandler, $refreshTokenManager, 2592000, 'testkey', true, $eventDispatcher);
+        $this->beConstructedWith($authenticator, $provider, $tokenStorage, $successHandler, $failureHandler, $refreshTokenManager, 2592000, 'testkey', true, $eventDispatcher);
 
         $authenticator->createToken(Argument::any(), Argument::any())->willReturn($token);
         $authenticator->authenticateToken(Argument::any(), Argument::any(), Argument::any())->willReturn($preAuthenticatedToken);
