@@ -16,6 +16,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use InvalidArgumentException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Gesdinet\JWTRefreshTokenBundle\Model\RefreshTokenManagerInterface;
 use Gesdinet\JWTRefreshTokenBundle\Security\Authenticator\RefreshTokenAuthenticator;
 use Gesdinet\JWTRefreshTokenBundle\Security\Provider\RefreshTokenProvider;
@@ -36,6 +37,11 @@ class RefreshToken
      * @var RefreshTokenProvider
      */
     private $provider;
+
+    /**
+     * @var TokenStorageInterface
+     */
+    private $tokenStorage;
 
     /**
      * @var AuthenticationSuccessHandlerInterface
@@ -88,6 +94,7 @@ class RefreshToken
     public function __construct(
         RefreshTokenAuthenticator $authenticator,
         RefreshTokenProvider $provider,
+        TokenStorageInterface $tokenStorage,
         AuthenticationSuccessHandlerInterface $successHandler,
         AuthenticationFailureHandlerInterface $failureHandler,
         RefreshTokenManagerInterface $refreshTokenManager,
@@ -98,6 +105,7 @@ class RefreshToken
     ) {
         $this->authenticator = $authenticator;
         $this->provider = $provider;
+        $this->tokenStorage = $tokenStorage;
         $this->successHandler = $successHandler;
         $this->failureHandler = $failureHandler;
         $this->refreshTokenManager = $refreshTokenManager;
@@ -146,6 +154,7 @@ class RefreshToken
             $this->refreshTokenManager->save($refreshToken);
         }
 
+        $this->tokenStorage->setToken($preAuthenticatedToken);
         $this->eventDispatcher->dispatch('gesdinet.refresh_token', new RefreshEvent($refreshToken, $preAuthenticatedToken));
 
         return $this->successHandler->onAuthenticationSuccess($request, $preAuthenticatedToken);
